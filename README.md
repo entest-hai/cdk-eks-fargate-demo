@@ -348,7 +348,7 @@ Goto aws console and double check the role, ensure that it can be assumed by the
       "Condition": {
         "StringEquals": {
           "oidc.eks.$REGION.com/id/$OICD_ID:sub": "system:serviceaccount:kube-system:$SERVICE_ACCOUNT_NAME",
-          "oidc.eks.$REGION.com/id/C1EDEA3AEB555336B1A46247DBAE14B0:aud": "sts.amazonaws.com"
+          "oidc.eks.$REGION.com/id/$OICD_ID:aud": "sts.amazonaws.com"
         }
       }
     }

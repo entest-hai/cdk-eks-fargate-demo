@@ -543,3 +543,5 @@ kubectl exec -i -t my-pod --container main-app -- /bin/bash
 - [CoreDNS update](https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html)
 
 - [Service Account](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
+
+- [ALB and Tag on EKS](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html)

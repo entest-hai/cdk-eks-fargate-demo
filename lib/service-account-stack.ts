@@ -19,7 +19,9 @@ export class ServiceAccountStack extends Stack {
     let condition: Condition = {};
 
     condition[`${props.oidc}:aud`] = "sts.amazonaws.com";
-    condition[`${props.oidc}:sub`] = `system:serviceaccount:kube-system:${props.serviceAccount}`;
+    condition[
+      `${props.oidc}:sub`
+    ] = `system:serviceaccount:kube-system:${props.serviceAccount}`;
 
     const json = fs.readFileSync(
       path.join(__dirname, "./../service-account/policy.json"),
@@ -30,20 +32,31 @@ export class ServiceAccountStack extends Stack {
 
     const document = JSON.parse(json);
 
-    const role = new aws_iam.Role(this, "RoleForAlbController", {
+    const trust = {
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: {
+            Federated: `arn:aws:iam::${this.account}:${props.oidc}`,
+          },
+          Action: "sts:AssumeRoleWithWebIdentity",
+          Condition: {
+            StringEquals: condition,
+          },
+        },
+      ],
+    };
+
+    new aws_iam.CfnRole(this, "RoleForAlbController", {
       roleName: "RoleForAlbController",
-      assumedBy: new aws_iam.FederatedPrincipal(
-        `arn:aws:iam::${this.account}:oidc-provider/${props.oidc}`
-      ).withConditions({
-        StringEquals: condition,
-      }),
+      assumeRolePolicyDocument: trust,
+      policies: [
+        {
+          policyDocument: document,
+          policyName: "PolicyForAlbController",
+        },
+      ],
     });
-
-    const policy = new aws_iam.Policy(this, "PolicyForAlbController", {
-      policyName: "PolicyForAlbController",
-      document: aws_iam.PolicyDocument.fromJson(document),
-    });
-
-    policy.attachToRole(role);
   }
 }

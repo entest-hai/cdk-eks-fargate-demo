@@ -6,6 +6,8 @@ This note shows you how to getting started with EKS (Fargate) and cdk8s. It help
 - Service Account
 - Application Load Balancer Controller
 
+Please read [this](https://aws.amazon.com/blogs/opensource/kubernetes-ingress-aws-alb-ingress-controller/) first to understarnd how ALB controller works and why we need it for EKS Fargate.
+
 It consists of main steps below
 
 - Create a EKS cluster and Fargate profiles using CDK

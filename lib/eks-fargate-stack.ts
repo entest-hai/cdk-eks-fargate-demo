@@ -8,6 +8,9 @@ interface EksFaragteProps extends StackProps {
 }
 
 export class EksFaragteStack extends Stack {
+
+  public readonly oidc: string 
+
   constructor(scope: Construct, id: string, props: EksFaragteProps) {
     super(scope, id, props);
 
@@ -147,6 +150,8 @@ export class EksFaragteStack extends Stack {
         ],
       }
     );
+
+    this.oidc = cluster.attrOpenIdConnectIssuerUrl 
 
     appFargateProfile.addDependency(cluster);
     adminFargateProfile.addDependency(cluster);

@@ -248,6 +248,23 @@ When the EKS cluster is created by CDK execution role, we need to update kebug c
 aws eks update-kubeconfig --name Demo --region ap-southeast-2 --role-arn 'arn:aws:iam::$ACCOUNT:role/cdk-hnb659fds-cfn-exec-role-$ACCOUNT-$REGION'
 ```
 
+## Create an IAM OIDC Provider 
+
+Follow [this](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) to create an iam oidc provider 
+
+
+query oidc 
+
+```bash 
+aws eks describe-cluster --name my-cluster --query "cluster.identity.oidc.issuer" --output text 
+```
+
+then create an iam oidc provider 
+
+```bash
+eksctl utils associate-iam-oidc-provider --cluster my-cluster --approve
+```
+
 ## Create an Service Account
 
 There are several ways to create a service account and bind it with an iam role. For example,follow guide [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)

@@ -1,8 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import { EksFaragteStack } from "../lib/eks-fargate-stack";
 import { VpcStack } from "../lib/network-stack";
+import { ServiceAccountStack } from "../lib/service-account-stack";
 
-const region = "ap-southeast-2";
+const region = "us-east-1";
 const app = new cdk.App();
 
 const network = new VpcStack(app, "VpcStack", {
@@ -23,3 +24,10 @@ new EksFaragteStack(app, "EksFaragteStack", {
     account: process.env.CDK_DEFAULT_ACCOUNT,
   },
 });
+
+new ServiceAccountStack(app, "ServiceAccountStack", {
+  env: {
+    region: region, 
+    account: process.env.CDK_DEFAULT_ACCOUNT
+  }
+})

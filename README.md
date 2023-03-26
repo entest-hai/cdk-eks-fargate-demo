@@ -255,7 +255,46 @@ There are several ways to create a service account and bind it with an iam role.
 - attach the policy to an iam role
 - bind the role with the service account
 
-First, create a service account using kubectl with below yaml file
+First, create an iam role by a stack 
+
+```ts 
+export class ServiceAccountStack extends Stack {
+  constructor(scope: Construct, id: string, props: StackProps) {
+    super(scope, id, props);
+
+    const json = fs.readFileSync(
+      path.join(__dirname, "./../service-account/policy.json"),
+      {
+        encoding: "utf-8",
+      }
+    );
+
+    const document = JSON.parse(json)
+
+    const role = new aws_iam.Role(this, "RoleForAlbController", {
+      roleName: "RoleForAlbController",
+      assumedBy: new aws_iam.FederatedPrincipal(
+        "arn:aws:iam::$ACCOUNT_ID:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/$OIDC"
+      ).withConditions({
+        StringEquals: {
+          "oidc.eks.us-east-1.amazonaws.com/id/$OIDC:aud": "sts.amazonaws.com",
+          "oidc.eks.us-east-1.amazonaws.com/id/$OIDC:sub":
+            "system:serviceaccount:kube-system:$SERVICE_ACCOUNT_NAME",
+        },
+      }),
+    });
+
+    const policy = new aws_iam.Policy(this, "PolicyForAlbController", {
+      policyName: "PolicyForAlbController",
+      document: aws_iam.PolicyDocument.fromJson(document),
+    });
+
+    policy.attachToRole(role);
+  }
+}
+```
+
+Second, create a service account using kubectl with below yaml file
 
 ```yaml
 apiVersion: v1
@@ -265,61 +304,7 @@ metadata:
   namespace: default
 ```
 
-Next, create iam policy and role in aws. Set account_id env variable
-
-```bash
-account_id=$(aws sts get-caller-identity --query "Account" --output text)
-```
-
-set oidc_provider env variable
-
-```bash
-oidc_provider=$(aws eks describe-cluster --name Demo --region ap-southeast-2 --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
-```
-
-export some variables
-
-```bash
-export namespace=kube-system
-export service_account=aws-alb-controller
-```
-
-Create a trust relationship policy
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::$account_id:oidc-provider/$oidc_provider"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "$oidc_provider:aud": "sts.amazonaws.com",
-          "$oidc_provider:sub": "system:serviceaccount:$namespace:$service_account"
-        }
-      }
-    }
-  ]
-}
-```
-
-Create an IAM role
-
-```bash
-aws iam create-role --role-name my-role --assume-role-policy-document file://trust-relationship.json --description "my-role-description"
-```
-
-Attach policy to iam role
-
-```bash
-aws iam attach-role-policy --role-name my-role --policy-arn=arn:aws:iam::$account_id:policy/my-policy
-```
-
-Annotate the service
+Finally, annotate the service
 
 ```bash
 kubectl annotate serviceaccount -n $namespace $service_account eks.amazonaws.com/role-arn=arn:aws:iam::$account_id:role/AmazonEKSLoadBalancerControllerRole
@@ -336,29 +321,6 @@ Describe the service account
 
 ```bash
 kubectl describe serviceaccount my-service-account -n default
-```
-
-Goto aws console and double check the role, ensure that it can be assumed by the oidc
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::$ACCOUNT:oidc-provider/oidc.eks.$REGION.amazonaws.com/id/OICD_ID"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.eks.$REGION.com/id/$OICD_ID:sub": "system:serviceaccount:kube-system:$SERVICE_ACCOUNT_NAME",
-          "oidc.eks.$REGION.com/id/$OICD_ID:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
-}
 ```
 
 ## Update CoreDNS

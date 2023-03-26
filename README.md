@@ -531,9 +531,11 @@ kubectl patch ingress cdk8s-ingress -n demo -p '{"metadata":{"finalizers":[]}}' 
 
 shell into a pod
 
-```bash
+```bashp
 kubectl exec -i -t my-pod --container main-app -- /bin/bash
 ```
+
+when destroy the EKS stack, the application load balancer and some network interfaces are still there, so we need to manually delete them, then destroy the VPC stack.
 
 ## Reference
 

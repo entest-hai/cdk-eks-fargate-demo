@@ -250,20 +250,19 @@ aws eks update-kubeconfig --name Demo --region ap-southeast-2 --role-arn 'arn:aw
 
 ## Create an Service Account
 
-To expose a service via AWS application load balancer we need
-
-- deploy an kube ingress
-- eks uses an addon (application load balancer controler) to create an AWS ALB
-- eks needs a service account with binding aws iam role
-
 There are several ways to create a service account and bind it with an iam role. For example,follow guide [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
-
 - create a service account in eks
 - create a policy assumed by the oicd of the service account
 - attach the policy to an iam role
 - bind the role with the service account
 
-First, create an iam role by a stack 
+First, query the oicd 
+
+```bash 
+aws eks describe-cluster --name my-cluster --region $AWS_REGION --query "cluster.identity.oidc.issuer" 
+```
+
+Second, create an iam role by a stack 
 
 ```ts 
 export class ServiceAccountStack extends Stack {
@@ -302,7 +301,7 @@ export class ServiceAccountStack extends Stack {
 }
 ```
 
-Second, create a service account using kubectl with below yaml file
+Third, create a service account using kubectl with below yaml file
 
 ```yaml
 apiVersion: v1

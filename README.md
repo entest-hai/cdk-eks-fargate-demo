@@ -280,11 +280,8 @@ export class ServiceAccountStack extends Stack {
 
     let condition: Condition = {};
 
-    condition[`oidc.eks.${this.region}.amazonaws.com/id/${props.oidc}:aud`] =
-      "sts.amazonaws.com";
-    condition[
-      `oidc.eks.${this.region}.amazonaws.com/id/${props.oidc}`
-    ] = `system:serviceaccount:kube-system:${props.serviceAccount}`;
+    condition[`${props.oidc}:aud`] = "sts.amazonaws.com";
+    condition[`${props.oidc}:sub`] = `system:serviceaccount:kube-system:${props.serviceAccount}`;
 
     const json = fs.readFileSync(
       path.join(__dirname, "./../service-account/policy.json"),
@@ -298,7 +295,7 @@ export class ServiceAccountStack extends Stack {
     const role = new aws_iam.Role(this, "RoleForAlbController", {
       roleName: "RoleForAlbController",
       assumedBy: new aws_iam.FederatedPrincipal(
-        `arn:aws:iam::${this.account}:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/${props.oidc}`
+        `arn:aws:iam::${this.account}:oidc-provider/${props.oidc}`
       ).withConditions({
         StringEquals: condition,
       }),

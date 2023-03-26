@@ -534,6 +534,8 @@ kubectl exec -i -t my-pod --container main-app -- /bin/bash
 
 ## Reference
 
+- [ALB Ingress Controller](https://aws.amazon.com/blogs/opensource/kubernetes-ingress-aws-alb-ingress-controller/)
+
 - [Fargate support only ALB](https://aws.amazon.com/jp/blogs/aws/amazon-eks-on-aws-fargate-now-generally-available/)
 
 - [Faragate ALB](https://aws.amazon.com/blogs/containers/using-alb-ingress-controller-with-amazon-eks-on-fargate/)
@@ -545,5 +547,3 @@ kubectl exec -i -t my-pod --container main-app -- /bin/bash
 - [Service Account](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
 
 - [ALB and Tag on EKS](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html)
-
-- [ALB Ingress Controller](https://aws.amazon.com/blogs/opensource/kubernetes-ingress-aws-alb-ingress-controller/)

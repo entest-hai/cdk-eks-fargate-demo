@@ -3,7 +3,7 @@
 This note shows you how to getting started with EKS (Fargate) and cdk8s. It helps you understand some essential concepts, hopefully
 
 - Fargate Profile
-- Service Account
+- [Service Account](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
 - [Application Load Balancer Controller](https://aws.amazon.com/blogs/opensource/kubernetes-ingress-aws-alb-ingress-controller/)
 
 Please read [this](https://aws.amazon.com/blogs/opensource/kubernetes-ingress-aws-alb-ingress-controller/) first to understarnd how ALB controller works and why we need it for EKS Fargate.

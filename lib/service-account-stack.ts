@@ -3,10 +3,26 @@ import { Construct } from "constructs";
 import * as fs from "fs";
 import * as path from "path";
 
+interface ServiceAccountProps extends StackProps {
+  oidc: string;
+  serviceAccount: string;
+}
+
+interface Condition {
+  [key: string]: string;
+}
 
 export class ServiceAccountStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: ServiceAccountProps) {
     super(scope, id, props);
+
+    let condition: Condition = {};
+
+    condition[`oidc.eks.${this.region}.amazonaws.com/id/${props.oidc}:aud`] =
+      "sts.amazonaws.com";
+    condition[
+      `oidc.eks.${this.region}.amazonaws.com/id/${props.oidc}`
+    ] = `system:serviceaccount:kube-system:${props.serviceAccount}`;
 
     const json = fs.readFileSync(
       path.join(__dirname, "./../service-account/policy.json"),
@@ -15,18 +31,14 @@ export class ServiceAccountStack extends Stack {
       }
     );
 
-    const document = JSON.parse(json)
+    const document = JSON.parse(json);
 
     const role = new aws_iam.Role(this, "RoleForAlbController", {
       roleName: "RoleForAlbController",
       assumedBy: new aws_iam.FederatedPrincipal(
-        "arn:aws:iam::$ACCOUNT_ID:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/$OIDC"
+        `arn:aws:iam::${this.account}:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/${props.oidc}`
       ).withConditions({
-        StringEquals: {
-          "oidc.eks.us-east-1.amazonaws.com/id/$OIDC:aud": "sts.amazonaws.com",
-          "oidc.eks.us-east-1.amazonaws.com/id/$OIDC:sub":
-            "system:serviceaccount:kube-system:$SERVICE_ACCOUNT_NAME",
-        },
+        StringEquals: condition,
       }),
     });
 

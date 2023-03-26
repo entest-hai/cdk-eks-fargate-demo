@@ -15,7 +15,7 @@ const network = new VpcStack(app, "VpcStack", {
   },
 });
 
-new EksFaragteStack(app, "EksFaragteStack", {
+const cluster = new EksFaragteStack(app, "EksFaragteStack", {
   vpc: network.vpc,
   eksSecurityGroup: network.eksSecurityGroup,
   clusterName: "Demo",
@@ -25,9 +25,13 @@ new EksFaragteStack(app, "EksFaragteStack", {
   },
 });
 
-new ServiceAccountStack(app, "ServiceAccountStack", {
+const service = new ServiceAccountStack(app, "ServiceAccountStack", {
+  oidc: "123",
+  serviceAccount: cluster.oidc,
   env: {
     region: region, 
     account: process.env.CDK_DEFAULT_ACCOUNT
   }
 })
+
+service.addDependency(cluster)

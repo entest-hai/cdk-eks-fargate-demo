@@ -1,3 +1,11 @@
+---
+title: Getting Started with EKS Faragate
+description: getting started with eks fargate
+author: haimtran
+publishedDate: 03/25/2022
+date: 2022-03-25
+---
+
 ## Introduction
 
 This note shows you how to getting started with EKS (Fargate) and cdk8s. It helps you understand some essential concepts, hopefully
@@ -274,11 +282,11 @@ export class ServiceAccountStack extends Stack {
     const role = new aws_iam.Role(this, "RoleForAlbController", {
       roleName: "RoleForAlbController",
       assumedBy: new aws_iam.FederatedPrincipal(
-        "arn:aws:iam::$ACCOUNT_ID:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/$OIDC"
+        "arn:aws:iam::$ACCOUNT_ID:oidc-provider/oidc.eks.$REGION.amazonaws.com/id/$OIDC"
       ).withConditions({
         StringEquals: {
-          "oidc.eks.us-east-1.amazonaws.com/id/$OIDC:aud": "sts.amazonaws.com",
-          "oidc.eks.us-east-1.amazonaws.com/id/$OIDC:sub":
+          "oidc.eks.$REGION.amazonaws.com/id/$OIDC:aud": "sts.amazonaws.com",
+          "oidc.eks.$REGION.amazonaws.com/id/$OIDC:sub":
             "system:serviceaccount:kube-system:$SERVICE_ACCOUNT_NAME",
         },
       }),

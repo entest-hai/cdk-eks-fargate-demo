@@ -535,7 +535,7 @@ shell into a pod
 kubectl exec -i -t my-pod --container main-app -- /bin/bash
 ```
 
-when destroy the EKS stack, the application load balancer and some network interfaces are still there, so we need to manually delete them, then destroy the VPC stack.
+when destroy the EKS stack, the application load balancer and some network interfaces are still there, so we need to manually delete them, then destroy the VPC stack
 
 ## Reference
 
@@ -556,3 +556,7 @@ when destroy the EKS stack, the application load balancer and some network inter
 - [ALB Controller How It Works](https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/how-it-works.md)
 
 - [Annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/#resource-tags)
+
+- [Exposing Kubernetes Applications](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-2-aws-load-balancer-controller/)
+
+- [How To Expose Multiple Applications on Amazon EKS Using a Single Application Load Balancer](https://aws.amazon.com/blogs/containers/how-to-expose-multiple-applications-on-amazon-eks-using-a-single-application-load-balancer/)

@@ -15,7 +15,7 @@ It consists of main steps below
 - Setup a service account
 - Install add-on application load balancer for EKS
 - Develop a service using cdk8s
-- [Multiple ingress in a same ALB](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/#group.name)
+- [Multiple ingress in the same ALB](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/#group.name)
 
 ![arch](https://user-images.githubusercontent.com/20411077/227763871-13ef71c1-4e11-485d-a3d9-f9327b04ad7c.png)
 

@@ -38,7 +38,7 @@ export class ServiceAccountStack extends Stack {
         {
           Effect: "Allow",
           Principal: {
-            Federated: `arn:aws:iam::${this.account}:${props.oidc}`,
+            Federated: `arn:aws:iam::${this.account}:oidc-provider/${props.oidc}`,
           },
           Action: "sts:AssumeRoleWithWebIdentity",
           Condition: {

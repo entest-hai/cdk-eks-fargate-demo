@@ -26,12 +26,13 @@ const cluster = new EksFaragteStack(app, "EksFaragteStack", {
 });
 
 const service = new ServiceAccountStack(app, "ServiceAccountStack", {
-  oidc: "123",
-  serviceAccount: cluster.oidc,
+  oidc: "oidc.eks.us-east-1.amazonaws.com/id/990D1EA5775D99A9C61E4BFC50C78A8B",
+  serviceAccount: "aws-alb-controller",
   env: {
     region: region, 
     account: process.env.CDK_DEFAULT_ACCOUNT
   }
 })
 
-service.addDependency(cluster)
+//service.addDependency(cluster)
+

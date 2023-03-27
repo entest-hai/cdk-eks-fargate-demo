@@ -240,19 +240,14 @@ const appFargateProfile = new aws_eks.CfnFargateProfile(
 Create OIDC identity provider, then we can skip manually creating as below step 
 
 ```ts 
-const idp = new aws_eks.CfnIdentityProviderConfig(
-  this,
-  "OIDCIdentityProvider",
+new aws_iam.OpenIdConnectProvider(
+  this, 
+  "IamOICDProvider",
   {
-    clusterName: props.clusterName,
-    type: "oidc",
-    identityProviderConfigName: "OIDCIdentityProvider",
-    oidc: {
-      clientId: "sts.amazonaws.com",
-      issuerUrl: cluster.attrOpenIdConnectIssuerUrl,
-    },
+    url: cluster.attrOpenIdConnectIssuerUrl, 
+    clientIds: ["sts.amazonaws.com"]
   }
-);
+)
 ```
 
 Create a IAM role for the service account 
@@ -370,13 +365,6 @@ Finally, annotate the service
 
 ```bash
 kubectl annotate serviceaccount -n $namespace $service_account eks.amazonaws.com/role-arn=arn:aws:iam::$account_id:role/AmazonEKSLoadBalancerControllerRole
-```
-
-Confirm service account are good
-
-```bash
-
-aws iam get-role --role-name my-role --query Role.AssumeRolePolicyDocument
 ```
 
 Describe the service account

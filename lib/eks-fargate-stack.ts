@@ -6,6 +6,7 @@ import {
   Stack,
   StackProps,
 } from "aws-cdk-lib";
+import { profile } from "console";
 import { Construct } from "constructs";
 
 interface EksFaragteProps extends StackProps {
@@ -170,6 +171,15 @@ export class EksFaragteStack extends Stack {
         },
       }
     );
+
+  new aws_iam.OpenIdConnectProvider(
+    this, 
+    "IamOICDProvider",
+    {
+      url: cluster.attrOpenIdConnectIssuerUrl, 
+      clientIds: ["sts.amazonaws.com"]
+    }
+  )
 
     this.oidc = cluster.attrOpenIdConnectIssuerUrl;
 

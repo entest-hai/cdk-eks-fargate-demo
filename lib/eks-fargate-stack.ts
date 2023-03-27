@@ -175,7 +175,7 @@ export class EksFaragteStack extends Stack {
 
     // dependency 
     appFargateProfile.addDependency(cluster);
-    adminFargateProfile.addDependency(appFargateProfile);
     idp.addDependency(cluster);
+    adminFargateProfile.addDependency(appFargateProfile);
   }
 }

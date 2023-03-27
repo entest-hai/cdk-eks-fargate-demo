@@ -1,4 +1,11 @@
-import { aws_ec2, aws_eks, aws_iam, Stack, StackProps } from "aws-cdk-lib";
+import {
+  aws_ec2,
+  aws_eks,
+  aws_iam,
+  aws_lambda_event_sources,
+  Stack,
+  StackProps,
+} from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 interface EksFaragteProps extends StackProps {
@@ -8,8 +15,7 @@ interface EksFaragteProps extends StackProps {
 }
 
 export class EksFaragteStack extends Stack {
-
-  public readonly oidc: string 
+  public readonly oidc: string;
 
   constructor(scope: Construct, id: string, props: EksFaragteProps) {
     super(scope, id, props);
@@ -151,9 +157,25 @@ export class EksFaragteStack extends Stack {
       }
     );
 
-    this.oidc = cluster.attrOpenIdConnectIssuerUrl 
+    const idp = new aws_eks.CfnIdentityProviderConfig(
+      this,
+      "OIDCIdentityProvider",
+      {
+        clusterName: props.clusterName,
+        type: "oidc",
+        identityProviderConfigName: "OIDCIdentityProvider",
+        oidc: {
+          clientId: "sts.amazonaws.com",
+          issuerUrl: cluster.attrOpenIdConnectIssuerUrl,
+        },
+      }
+    );
 
+    this.oidc = cluster.attrOpenIdConnectIssuerUrl;
+
+    // dependency 
     appFargateProfile.addDependency(cluster);
-    adminFargateProfile.addDependency(cluster);
+    adminFargateProfile.addDependency(appFargateProfile);
+    idp.addDependency(cluster);
   }
 }

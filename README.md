@@ -237,49 +237,25 @@ const appFargateProfile = new aws_eks.CfnFargateProfile(
 );
 ```
 
-## Update Kubeconfig
+Create OIDC identity provider, then we can skip manually creating as below step 
 
-When the EKS cluster is created by CDK execution role, we need to update kebug config in our local machine to accesss eks clsuter via kubectl
-
-- Find the CDK execution role in CloudFormation (Bootstrap stack)
-- Then update kubeconfig as below
-
-```bash
-aws eks update-kubeconfig --name Demo --region ap-southeast-2 --role-arn 'arn:aws:iam::$ACCOUNT:role/cdk-hnb659fds-cfn-exec-role-$ACCOUNT-$REGION'
+```ts 
+const idp = new aws_eks.CfnIdentityProviderConfig(
+  this,
+  "OIDCIdentityProvider",
+  {
+    clusterName: props.clusterName,
+    type: "oidc",
+    identityProviderConfigName: "OIDCIdentityProvider",
+    oidc: {
+      clientId: "sts.amazonaws.com",
+      issuerUrl: cluster.attrOpenIdConnectIssuerUrl,
+    },
+  }
+);
 ```
 
-## Create an IAM OIDC Provider 
-
-Follow [this](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) to create an iam oidc provider 
-
-
-query oidc 
-
-```bash 
-aws eks describe-cluster --name my-cluster --query "cluster.identity.oidc.issuer" --output text 
-```
-
-then create an iam oidc provider 
-
-```bash
-eksctl utils associate-iam-oidc-provider --cluster my-cluster --approve
-```
-
-## Create an Service Account
-
-There are several ways to create a service account and bind it with an iam role. For example,follow guide [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
-- create a service account in eks
-- create a policy assumed by the oicd of the service account
-- attach the policy to an iam role
-- bind the role with the service account
-
-First, query the oicd 
-
-```bash 
-aws eks describe-cluster --name my-cluster --region $AWS_REGION --query "cluster.identity.oidc.issuer" 
-```
-
-Second, create an iam role by a stack 
+Create a IAM role for the service account 
 
 ```ts 
 interface ServiceAccountProps extends StackProps {
@@ -339,6 +315,45 @@ export class ServiceAccountStack extends Stack {
     });
   }
 }
+```
+
+## Update Kubeconfig
+
+When the EKS cluster is created by CDK execution role, we need to update kebug config in our local machine to accesss eks clsuter via kubectl
+
+- Find the CDK execution role in CloudFormation (Bootstrap stack)
+- Then update kubeconfig as below
+
+```bash
+aws eks update-kubeconfig --name Demo --region ap-southeast-2 --role-arn 'arn:aws:iam::$ACCOUNT:role/cdk-hnb659fds-cfn-exec-role-$ACCOUNT-$REGION'
+```
+
+## Create an IAM OIDC Provider 
+
+This step can be skip as the above stack already created a IAM OIDC identity provider.  [this](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) to create an iam oidc provider 
+
+query oidc 
+
+```bash 
+aws eks describe-cluster --name my-cluster --query "cluster.identity.oidc.issuer" --output text 
+```
+
+then create an iam oidc provider 
+
+```bash
+eksctl utils associate-iam-oidc-provider --cluster my-cluster --approve
+```
+
+## Create an Service Account
+
+There are several ways to create a service account and bind it with an iam role. For example,follow guide [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
+- create a service account in eks
+- bind the role (created in stack above) with the service account
+
+First, query the oicd 
+
+```bash 
+aws eks describe-cluster --name my-cluster --region $AWS_REGION --query "cluster.identity.oidc.issuer" 
 ```
 
 Third, create a service account using kubectl with below yaml file
@@ -571,3 +586,5 @@ when destroy the EKS stack, the application load balancer and some network inter
 - [Exposing Kubernetes Applications](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-2-aws-load-balancer-controller/)
 
 - [How To Expose Multiple Applications on Amazon EKS Using a Single Application Load Balancer](https://aws.amazon.com/blogs/containers/how-to-expose-multiple-applications-on-amazon-eks-using-a-single-application-load-balancer/)
+
+- [IAM OIDC Provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html)

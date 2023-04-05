@@ -631,6 +631,10 @@ new KubeService(this, "service", {
 
 - [IAM OIDC Provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html)
 
+- [HTTPS](https://repost.aws/knowledge-center/eks-apps-tls-to-activate-https)
+
+- [Associating custom domain with LB](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/using-domain-names-with-elb.html#dns-associate-custom-elb)
+
 ```
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 -n kube-system \

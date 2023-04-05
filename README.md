@@ -237,22 +237,18 @@ const appFargateProfile = new aws_eks.CfnFargateProfile(
 );
 ```
 
-Create OIDC identity provider, then we can skip manually creating as below step 
+Create OIDC identity provider, then we can skip manually creating as below step
 
-```ts 
-new aws_iam.OpenIdConnectProvider(
-  this, 
-  "IamOICDProvider",
-  {
-    url: cluster.attrOpenIdConnectIssuerUrl, 
-    clientIds: ["sts.amazonaws.com"]
-  }
-)
+```ts
+new aws_iam.OpenIdConnectProvider(this, "IamOICDProvider", {
+  url: cluster.attrOpenIdConnectIssuerUrl,
+  clientIds: ["sts.amazonaws.com"],
+});
 ```
 
-Create a IAM role for the service account 
+Create a IAM role for the service account
 
-```ts 
+```ts
 interface ServiceAccountProps extends StackProps {
   oidc: string;
   serviceAccount: string;
@@ -323,17 +319,17 @@ When the EKS cluster is created by CDK execution role, we need to update kebug c
 aws eks update-kubeconfig --name Demo --region ap-southeast-2 --role-arn 'arn:aws:iam::$ACCOUNT:role/cdk-hnb659fds-cfn-exec-role-$ACCOUNT-$REGION'
 ```
 
-## Create an IAM OIDC Provider 
+## Create an IAM OIDC Provider
 
-This step can be skip as the above stack already created a IAM OIDC identity provider.  [this](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) to create an iam oidc provider 
+This step can be skip as the above stack already created a IAM OIDC identity provider. [this](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) to create an iam oidc provider
 
-query oidc 
+query oidc
 
-```bash 
-aws eks describe-cluster --name my-cluster --query "cluster.identity.oidc.issuer" --output text 
+```bash
+aws eks describe-cluster --name my-cluster --query "cluster.identity.oidc.issuer" --output text
 ```
 
-then create an iam oidc provider 
+then create an iam oidc provider
 
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster my-cluster --approve
@@ -342,13 +338,14 @@ eksctl utils associate-iam-oidc-provider --cluster my-cluster --approve
 ## Create an Service Account
 
 There are several ways to create a service account and bind it with an iam role. For example,follow guide [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html)
+
 - create a service account in eks
 - bind the role (created in stack above) with the service account
 
-First, query the oicd 
+First, query the oicd
 
-```bash 
-aws eks describe-cluster --name my-cluster --region $AWS_REGION --query "cluster.identity.oidc.issuer" 
+```bash
+aws eks describe-cluster --name my-cluster --region $AWS_REGION --query "cluster.identity.oidc.issuer"
 ```
 
 Third, create a service account using kubectl with below yaml file
@@ -537,6 +534,30 @@ kubectl create -f cdk8s-app.k8s.yaml
 
 ## Troubleshooting
 
+update the trust relationship of the cloudformation exec role
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudformation.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::$ACCOUNT:role/TeamRole"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
 delete ingress when error
 
 ```bash
@@ -550,6 +571,39 @@ kubectl exec -i -t my-pod --container main-app -- /bin/bash
 ```
 
 when destroy the EKS stack, the application load balancer and some network interfaces are still there, so we need to manually delete them, then destroy the VPC stack
+
+## Expose HTTPS
+
+```ts
+new KubeService(this, "service", {
+  metadata: {
+    annotations: {
+      "service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "http",
+      "service.beta.kubernetes.io/aws-load-balancer-ssl-cert":
+        "arn:aws:acm:ap-southeast-1:xxx:certificate/xxx",
+      "service.beta.kubernetes.io/aws-load-balancer-ssl-ports": "https",
+    },
+  },
+  spec: {
+    type: "LoadBalancer",
+    ports: [
+      {
+        name: "http",
+        port: 80,
+        targetPort: IntOrString.fromNumber(8080),
+        protocol: "TCP",
+      },
+      {
+        name: "https",
+        port: 443,
+        targetPort: IntOrString.fromNumber(8080),
+        protocol: "TCP",
+      },
+    ],
+    selector: label,
+  },
+});
+```
 
 ## Reference
 
@@ -576,3 +630,13 @@ when destroy the EKS stack, the application load balancer and some network inter
 - [How To Expose Multiple Applications on Amazon EKS Using a Single Application Load Balancer](https://aws.amazon.com/blogs/containers/how-to-expose-multiple-applications-on-amazon-eks-using-a-single-application-load-balancer/)
 
 - [IAM OIDC Provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html)
+
+```
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+-n kube-system \
+--set clusterName=Demo \
+--set serviceAccount.create=false \
+--set serviceAccount.name=aws-alb-controller \
+--set region=us-east-1\
+--set vpcId=vpc-01c50e6ee10b6d6da
+```

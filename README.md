@@ -607,6 +607,8 @@ new KubeService(this, "service", {
 
 ## Reference
 
+- [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.5/how-it-works/)
+
 - [ALB Ingress Controller](https://aws.amazon.com/blogs/opensource/kubernetes-ingress-aws-alb-ingress-controller/)
 
 - [Fargate support only ALB](https://aws.amazon.com/jp/blogs/aws/amazon-eks-on-aws-fargate-now-generally-available/)
@@ -635,6 +637,12 @@ new KubeService(this, "service", {
 
 - [Associating custom domain with LB](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/using-domain-names-with-elb.html#dns-associate-custom-elb)
 
+- [eks fargate s3 service account](https://repost.aws/knowledge-center/eks-restrict-s3-bucket)
+
+- [ingress application load balancer](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.5/guide/ingress/annotations/)
+
+- [ingress specfication](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.5/guide/ingress/spec/)
+
 ```
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 -n kube-system \
@@ -643,4 +651,22 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 --set serviceAccount.name=aws-alb-controller \
 --set region=us-east-1\
 --set vpcId=vpc-01c50e6ee10b6d6da
+```
+
+```bash
+aws eks update-kubeconfig --name Demo --region ap-southeast-1 --role-arn 'arn:aws:iam::562271415333:role/cdk-hnb659fds-cfn-exec-role-562271415333-ap-southeast-1'
+```
+
+```bash
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+-n kube-system \
+--set clusterName=Demo \
+--set serviceAccount.create=false \
+--set serviceAccount.name=aws-alb-controller \
+--set region=ap-southeast-1 \
+--set vpcId=vpc-0fbb832c4b363bc97
+```
+
+```bash
+kubectl rollout restart deployment/book-app-deployment -n demo
 ```

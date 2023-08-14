@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="{{ url_for('static', filename='output.css')}}"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="dark:bg-slate-800 min-h-screen">
+      <div class="flex items-center justify-center mx-auto max-w-4xl">
+        <form
+          class="w-full px-5"
+          method="POST"
+          action="{{ url_for('speech')}} "
+        >
+          <label class="dark:text-white">Write your message</label>
+          <textarea
+            name="text"
+            id="polly"
+            rows="12"
+            class="form-control block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 my-5"
+            placeholder="Write your thoughts here..."
+          ></textarea>
+          <input
+            class="cursor-pointer bg-orange-300 px-10 py-2 rounded-sm"
+            type="submit"
+            value="Submit"
+          />
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

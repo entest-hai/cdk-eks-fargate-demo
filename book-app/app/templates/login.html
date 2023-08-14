@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="{{ url_for('static', filename='output.css')}}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="flex justify-center items-center min-h-screen">
+      <div
+        class="w-full sm:max-w-md bg-white shadow px-5 py-5 dark:border rounded-md mx-auto"
+      >
+        <h1
+          class="text-xl font-bold leading-tighti tracking-ti text-gray-900 md:text-2xl dark:text-white"
+        >
+          Sign in to your account
+        </h1>
+        <form action="/user" method="POST" class="block">
+          <div class="my-5">
+            <label for="username" class="block">username</label>
+            <input
+              type="text"
+              name="username"
+              id="username"
+              value=""
+              class="border-black border-solid border-2 w-full"
+            />
+          </div>
+          <div class="my-5">
+            <label for="password" class="block">password</label>
+            <input
+              type="text"
+              name="password"
+              id="password"
+              value=""
+              class="border-black border-solid border-2 w-full"
+            />
+          </div>
+          <button type="submit" class="bg-orange-400 py-2 px-10 rounded-sm">
+            Log In
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

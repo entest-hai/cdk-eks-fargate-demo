@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- entest 29 april 2023 basic tailwind -->
+<html class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="{{ url_for('static', filename='output.css')}}"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="dark:bg-slate-800">
+    <div class="dark:bg-slate-900 bg-green-400 py-3">
+      <nav class="flex mx-auto max-w-5xl px-2 justify-between">
+        <a href="#" class="dark:text-white font-bold text-2xl"> Entest </a>
+        <ul class="hidden md:flex gap-x-3">
+          <li
+            class="hidden bg-white hover:bg-green-600 hover:text-white px-3 py-1 rounded-sm"
+          >
+            <a href="https://cdk.entest.io/" target="_blank">About Me</a>
+          </li>
+          <li
+            class="bg-white hover:bg-green-600 hover:text-white px-5 py-1 rounded-sm"
+          >
+            <form action="/book?user=4">
+              <button type="submit">Log In</button>
+            </form>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div
+      class="bg-[url('https://d2cvlmmg8c0xrp.cloudfront.net/web-css/singapore.jpg')] bg-no-repeat bg-cover"
+    >
+      <div class="mx-auto max-w-5xl pt-20 pb-48 pr-48 mb-10 text-right">
+        <h2 class="invisible md:visible text-3xl font-bold mb-8">
+          Good Books about AWS Cloud Computing
+        </h2>
+      </div>
+    </div>
+    <div class="mx-auto max-w-5xl">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {% for row in range(0,nrow-1) %}
+        <div class="ml-4 bg-white p-3 dark:bg-slate-900 dark:text-white">
+          <h4 class="font-bold mb-8">{{ books[row].title }}</h4>
+          <div>
+            <img
+              src="{{ books[row].image }}"
+              class="float-left h-auto w-64 mr-6"
+              alt="book-image"
+            />
+          </div>
+          <p class="text-sm">{{ books[row].description }}</p>
+          <a href="{{ books[row].amazon }}" target="_blank">
+            <button
+              class="bg-orange-400 px-14 py-3 rounded-md shadow-md hover:bg-orange-500 mt-2"
+            >
+              Amazon
+            </button>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <footer class="bg-gray-200 mt-12 text-gray-00 py-4">
+      <div class="mx-auto max-w-5xl text-center text-base">
+        Copyright &copy; 2023 entest, Inc
+      </div>
+    </footer>
+  </body>
+</html>

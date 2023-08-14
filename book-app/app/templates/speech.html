@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="{{ url_for('static', filename='output.css')}}"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="dark:bg-slate-800">
+    <div class="mx-auto max-w-4xl px-5">
+      <div class="flex h-[480px] items-center justify-center">
+        <video
+          controls
+          class="h-full w-auto max-h-[480px] py-5 cursor-pointer"
+          poster="https://d2cvlmmg8c0xrp.cloudfront.net/pirf/tree.jpg"
+        >
+          <source src="{{ audio_url }}" />
+        </video>
+      </div>
+      <div class="dark:text-white">{{ message }}</div>
+    </div>
+  </body>
+</html>

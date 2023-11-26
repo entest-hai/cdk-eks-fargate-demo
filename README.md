@@ -27,6 +27,10 @@ It consists of main steps below
 
 ![arch](https://user-images.githubusercontent.com/20411077/227763871-13ef71c1-4e11-485d-a3d9-f9327b04ad7c.png)
 
+## How It Work
+
+![alb-ingress-controller](./assets/ALB-Ingress-Controller.png)
+
 ## Project Structure
 
 ```ts
@@ -381,6 +385,21 @@ kubectl patch deployment coredns \
     -p='[{"op": "remove", "path": "/spec/template/metadata/annotations/eks.amazonaws.com~1compute-type"}]'
 ```
 
+and roll out update
+
+```bash
+kubectl rollout restart -n kube-system deployment coredns
+```
+
+Result
+
+```txt
+kube-system   aws-load-balancer-controller-679cd89fb-j86qs   1/1     Running   0          2m35s
+kube-system   aws-load-balancer-controller-679cd89fb-mnbns   1/1     Running   0          2m35s
+kube-system   coredns-75f79db4-59pkk                         1/1     Running   0          62s
+kube-system   coredns-75f79db4-vglff                         1/1     Running   0          62s
+```
+
 ## Install ALB Controller
 
 After update the coredns, we install an application load balancer (an eks addon) using helm. This controller will request aws to create ALB when we deploy an ingress.
@@ -404,6 +423,16 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 --set serviceAccount.name=$SERVICE_ACCOUNT_NAME \
 --set region=$REGION \
 --set vpcId=$VPC_ID
+```
+
+```bash
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+-n kube-system \
+--set clusterName=Demo \
+--set serviceAccount.create=false \
+--set serviceAccount.name=aws-alb-controller \
+--set region=ap-southeast-1 \
+--set vpcId=vpc-0f8c194527254bef6
 ```
 
 delete
@@ -574,35 +603,120 @@ when destroy the EKS stack, the application load balancer and some network inter
 
 ## Expose HTTPS
 
-```ts
-new KubeService(this, "service", {
-  metadata: {
-    annotations: {
-      "service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "http",
-      "service.beta.kubernetes.io/aws-load-balancer-ssl-cert":
-        "arn:aws:acm:ap-southeast-1:xxx:certificate/xxx",
-      "service.beta.kubernetes.io/aws-load-balancer-ssl-ports": "https",
+- Create service and ingress
+- Update Route53
+- Validate result
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-app-deployment
+  namespace: demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: book-app
+      environment: dev
+  template:
+    metadata:
+      labels:
+        app: book-app
+        environment: dev
+    spec:
+      containers:
+        - image: 111222333444.dkr.ecr.ap-southeast-1.amazonaws.com/book-app:latest
+          name: book-app
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 500m
+      serviceAccountName: book-app-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:ap-southeast-1:111222333444:certificate/111222333444
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
+  name: book-app-service
+  namespace: demo
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: https
+      port: 443
+      targetPort: 8080
+  selector:
+    app: book-app
+    environment: dev
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:913165135663:certificate/913165135663
+    alb.ingress.kubernetes.io/group.name: dev
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/subnets: subnet-0e5f4254929b7e561, subnet-00305ac19f5193603, subnet-0508f66e5cbddb927
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+  name: book-app-ingress
+  namespace: demo
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: book-app-service
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+```
+
+Update Route53 record
+
+```py
+import os
+import boto3
+
+# route53 client
+client = boto3.client('route53')
+
+# update load balancer dns
+response = client.change_resource_record_sets(
+    ChangeBatch={
+        'Changes': [
+            {
+                'Action': 'UPSERT',
+                'ResourceRecordSet': {
+                    'Name': 'vng-alb.entest.io',
+                    'ResourceRecords': [
+                        {
+                            'Value': $ALB-HTTP-ENDPONT-HERE,
+                        },
+                    ],
+                    'TTL': 300,
+                    'Type': 'CNAME',
+                },
+            },
+        ],
+        'Comment': 'Web Server',
     },
-  },
-  spec: {
-    type: "LoadBalancer",
-    ports: [
-      {
-        name: "http",
-        port: 80,
-        targetPort: IntOrString.fromNumber(8080),
-        protocol: "TCP",
-      },
-      {
-        name: "https",
-        port: 443,
-        targetPort: IntOrString.fromNumber(8080),
-        protocol: "TCP",
-      },
-    ],
-    selector: label,
-  },
-});
+    HostedZoneId=$HostedZoneId,
+)
 ```
 
 ## Reference
@@ -669,4 +783,8 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 
 ```bash
 kubectl rollout restart deployment/book-app-deployment -n demo
+```
+
+```bash
+aws eks update-kubeconfig --name Demo --region ap-southeast-1 --role-arn 'arn:aws:iam::913165135663:role/cdk-hnb659fds-cfn-exec-role-913165135663-ap-southeast-1'
 ```
